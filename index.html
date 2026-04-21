@@ -1,725 +1,971 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eco-Audit | Auditoría de Sostenibilidad EBC</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría EBC · Indaws</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #172010;
+    --border: #1e2e1e;
+    --accent: #4ade80;
+    --accent2: #86efac;
+    --accent3: #bbf7d0;
+    --text: #e8f5e9;
+    --muted: #6b8f71;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --ok: #4ade80;
+    --dh: #60a5fa;
+    --sol: #a78bfa;
+    --eco: #4ade80;
+    --js: #fb923c;
+    --dem: #f472b6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, #0d2e1a 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 90% 80%, #071a0f 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      color: #1a202c;
-      min-height: 100vh;
-    }
+  /* NOISE TEXTURE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    header {
-      background: linear-gradient(135deg, #1a6b3c, #2d9e5f);
-      color: white;
-      padding: 2rem;
-      text-align: center;
-    }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
 
-    header h1 { font-size: 2.2rem; margin-bottom: 0.3rem; }
-    header p { font-size: 1rem; opacity: 0.85; }
+  /* HEADER */
+  header {
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+  .header-inner { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; flex-wrap: wrap; }
+  .logo-block { display: flex; flex-direction: column; gap: 0.4rem; }
+  .logo-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    display: inline-block;
+    width: fit-content;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  h1 span { color: var(--accent); }
+  .meta-block { text-align: right; }
+  .company-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+  .company-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.6; }
 
-    .container {
-      max-width: 860px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
+  /* PROGRESS */
+  .progress-bar-outer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    height: 6px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+  .progress-label { font-size: 0.75rem; color: var(--muted); text-align: right; }
 
-    .intro-card {
-      background: white;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      margin-bottom: 2rem;
-    }
+  /* SECTIONS */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .section-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .section-card[data-cat="dh"]::before { background: var(--dh); }
+  .section-card[data-cat="sol"]::before { background: var(--sol); }
+  .section-card[data-cat="eco"]::before { background: var(--eco); }
+  .section-card[data-cat="js"]::before { background: var(--js); }
+  .section-card[data-cat="dem"]::before { background: var(--dem); }
 
-    .intro-card h2 { color: #1a6b3c; margin-bottom: 0.8rem; }
-    .intro-card p { line-height: 1.6; color: #4a5568; }
+  .section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .section-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  [data-cat="dh"] .section-icon { background: rgba(96,165,250,0.12); color: var(--dh); }
+  [data-cat="sol"] .section-icon { background: rgba(167,139,250,0.12); color: var(--sol); }
+  [data-cat="eco"] .section-icon { background: rgba(74,222,128,0.12); color: var(--eco); }
+  [data-cat="js"] .section-icon { background: rgba(251,146,60,0.12); color: var(--js); }
+  [data-cat="dem"] .section-icon { background: rgba(244,114,182,0.12); color: var(--dem); }
 
-    .empresa-form {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.2rem;
-      flex-wrap: wrap;
-    }
+  .section-title-block { flex: 1; }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
 
-    .empresa-form input {
-      flex: 1;
-      min-width: 200px;
-      padding: 0.7rem 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
+  /* QUESTIONS */
+  .question-group { margin-bottom: 1.5rem; }
+  .question-group:last-child { margin-bottom: 0; }
+  .question-label {
+    font-size: 0.88rem;
+    color: var(--accent3);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .option-btn {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: left;
+    width: 100%;
+  }
+  .option-btn:hover {
+    border-color: rgba(74,222,128,0.3);
+    color: var(--text);
+    background: rgba(74,222,128,0.05);
+  }
+  .option-btn.selected {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(74,222,128,0.1);
+  }
+  .option-dot {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .option-btn.selected .option-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(74,222,128,0.5);
+  }
+  .points-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    background: rgba(74,222,128,0.08);
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .option-btn.selected .points-badge { color: var(--accent); }
 
-    .empresa-form input:focus {
-      outline: none;
-      border-color: #2d9e5f;
-    }
+  /* CTA */
+  .cta-wrap { text-align: center; padding: 2rem 0 3rem; }
+  .btn-evaluate {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 1rem 3rem;
+    background: linear-gradient(135deg, var(--accent), #22c55e);
+    color: #0a0f0d;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 40px rgba(74,222,128,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-evaluate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-evaluate:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(74,222,128,0.35); }
+  .btn-evaluate:hover::after { opacity: 0.05; }
+  .btn-evaluate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .cta-note { font-size: 0.78rem; color: var(--muted); margin-top: 1rem; }
 
-    .progress-bar-wrap {
-      background: #e2e8f0;
-      border-radius: 99px;
-      height: 8px;
-      margin-bottom: 1.5rem;
-    }
+  /* RESULTS */
+  #results { display: none; }
+  .results-hero {
+    text-align: center;
+    padding: 3rem 0 2rem;
+  }
+  .score-ring {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .score-ring::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) var(--pct, 0%), transparent var(--pct, 0%));
+    z-index: -1;
+    transition: all 1.5s cubic-bezier(.4,0,.2,1);
+  }
+  .score-ring::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+  .score-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+    z-index: 1;
+    position: relative;
+  }
+  .score-denom { font-size: 1rem; color: var(--muted); z-index: 1; position: relative; }
+  .results-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+  .results-subtitle { color: var(--muted); font-size: 0.9rem; }
 
-    .progress-bar {
-      height: 8px;
-      border-radius: 99px;
-      background: linear-gradient(90deg, #1a6b3c, #48bb78);
-      transition: width 0.4s ease;
-    }
+  /* SEMAFORO */
+  .semaforo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .semaforo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .semaforo-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    margin: 0 auto 0.75rem;
+    box-shadow: 0 0 12px currentColor;
+  }
+  .semaforo-dot.red { background: var(--danger); color: var(--danger); }
+  .semaforo-dot.yellow { background: var(--warn); color: var(--warn); }
+  .semaforo-dot.green { background: var(--ok); color: var(--ok); }
+  .semaforo-cat { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .semaforo-score { font-size: 1.4rem; font-weight: 700; font-family: 'Syne', sans-serif; }
+  .semaforo-max { font-size: 0.7rem; color: var(--muted); }
+  .semaforo-label { font-size: 0.7rem; margin-top: 0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .semaforo-label.red { color: var(--danger); }
+  .semaforo-label.yellow { color: var(--warn); }
+  .semaforo-label.green { color: var(--ok); }
 
-    .progress-text {
-      text-align: right;
-      font-size: 0.85rem;
-      color: #718096;
-      margin-bottom: 0.5rem;
-    }
+  /* RADAR */
+  .chart-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .chart-wrap { max-width: 440px; margin: 0 auto; }
 
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
-    }
+  /* RECOMENDACIONES */
+  .rec-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .rec-section-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .rec-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--surface2);
+    border-left: 3px solid var(--border);
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+  }
+  .rec-item.priority-high { border-left-color: var(--danger); }
+  .rec-item.priority-med { border-left-color: var(--warn); }
+  .rec-item.priority-low { border-left-color: var(--ok); }
+  .rec-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .rec-text { font-size: 0.84rem; line-height: 1.6; color: var(--accent3); }
+  .rec-cat { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
 
-    .category-icon { font-size: 2rem; }
+  /* RESET */
+  .btn-reset {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.7rem 2rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1.5rem;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
 
-    .category-header h2 { font-size: 1.4rem; color: #1a6b3c; }
-    .category-header p { font-size: 0.9rem; color: #718096; }
+  .fade-in { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+  @keyframes fadeIn { to { opacity: 1; } }
 
-    .question-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-      margin-bottom: 1.2rem;
-      border-left: 4px solid #2d9e5f;
-      transition: box-shadow 0.2s;
-    }
+  .slide-up { animation: slideUp 0.5s ease forwards; opacity: 0; transform: translateY(20px); }
+  @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-    .question-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-
-    .question-card h3 {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      color: #2d3748;
-      line-height: 1.5;
-    }
-
-    .options { display: flex; flex-direction: column; gap: 0.6rem; }
-
-    .option-label {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.7rem 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.95rem;
-    }
-
-    .option-label:hover { border-color: #2d9e5f; background: #f0fff4; }
-
-    input[type="radio"] { accent-color: #1a6b3c; width: 16px; height: 16px; }
-
-    .option-label:has(input:checked) {
-      border-color: #1a6b3c;
-      background: #f0fff4;
-    }
-
-    .btn {
-      padding: 0.8rem 2rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #1a6b3c, #2d9e5f);
-      color: white;
-    }
-
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,107,60,0.3); }
-
-    .btn-secondary { background: #e2e8f0; color: #4a5568; }
-    .btn-secondary:hover { background: #cbd5e0; }
-
-    .nav-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 1.5rem;
-    }
-
-    #results { display: none; }
-
-    .results-header {
-      background: white;
-      border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      margin-bottom: 1.5rem;
-    }
-
-    .score-circle {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: 1rem auto;
-      font-weight: bold;
-    }
-
-    .score-circle .score-number { font-size: 2.5rem; line-height: 1; }
-    .score-circle .score-max { font-size: 0.9rem; opacity: 0.7; }
-
-    .score-A { background: #c6f6d5; color: #1a6b3c; border: 4px solid #2d9e5f; }
-    .score-B { background: #fefcbf; color: #744210; border: 4px solid #d69e2e; }
-    .score-C { background: #fed7d7; color: #742a2a; border: 4px solid #e53e3e; }
-
-    .badge {
-      display: inline-block;
-      padding: 0.3rem 1rem;
-      border-radius: 99px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-top: 0.5rem;
-    }
-
-    .badge-A { background: #c6f6d5; color: #1a6b3c; }
-    .badge-B { background: #fefcbf; color: #744210; }
-    .badge-C { background: #fed7d7; color: #742a2a; }
-
-    .results-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-
-    .card h3 { font-size: 1.1rem; color: #2d3748; margin-bottom: 1rem; }
-
-    .semaforo { display: flex; flex-direction: column; gap: 0.8rem; }
-
-    .sema-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.6rem 0.8rem;
-      border-radius: 8px;
-    }
-
-    .sema-left { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 500; }
-
-    .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-    .dot-green { background: #48bb78; }
-    .dot-yellow { background: #ecc94b; }
-    .dot-red { background: #fc8181; }
-
-    .sema-green { background: #f0fff4; }
-    .sema-yellow { background: #fffff0; }
-    .sema-red { background: #fff5f5; }
-
-    .sema-score { font-weight: 700; font-size: 0.95rem; }
-
-    .rec-list { display: flex; flex-direction: column; gap: 0.8rem; }
-
-    .rec-item {
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      border-left: 4px solid;
-    }
-
-    .rec-critical { background: #fff5f5; border-color: #e53e3e; }
-    .rec-warning { background: #fffff0; border-color: #d69e2e; }
-    .rec-good { background: #f0fff4; border-color: #2d9e5f; }
-
-    .rec-item strong { display: block; margin-bottom: 0.3rem; }
-
-    .radar-wrap { position: relative; max-width: 300px; margin: 0 auto; }
-
-    .hidden { display: none; }
-
-    .warning-msg {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      color: #856404;
-      display: none;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: #a0aec0;
-      font-size: 0.85rem;
-    }
-  </style>
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .meta-block { text-align: left; }
+    .semaforo-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
 </head>
 <body>
 
-<header>
-  <h1>🌿 Eco-Audit</h1>
-  <p>Herramienta de diagnóstico de sostenibilidad basada en la Economía del Bien Común</p>
-</header>
-
 <div class="container">
-
-  <div class="intro-card" id="intro">
-    <h2>¿Qué es Eco-Audit?</h2>
-    <p>Esta herramienta permite a cualquier PYME autoevaluarse según los principios de la <strong>Economía del Bien Común (EBC)</strong>. Responde las preguntas y obtendrás un informe de impacto con recomendaciones personalizadas basadas en los 5 valores EBC: Dignidad Humana, Solidaridad, Justicia Social, Sostenibilidad Ecológica y Democracia/Transparencia.</p>
-    <div class="empresa-form">
-      <input type="text" id="empresa-nombre" placeholder="Nombre de la empresa" />
-      <input type="text" id="empresa-sector" placeholder="Sector (ej: TIC, Hostelería...)" />
-      <button class="btn btn-primary" onclick="startAudit()">Comenzar Auditoría →</button>
-    </div>
-  </div>
-
-  <div id="cuestionario" class="hidden">
-    <div class="progress-text" id="progress-text">Categoría 1 de 5</div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progress-bar" style="width: 20%"></div>
-    </div>
-    <div class="warning-msg" id="warning-msg">⚠️ Por favor, responde todas las preguntas antes de continuar.</div>
-    <div id="category-content"></div>
-    <div class="nav-buttons">
-      <button class="btn btn-secondary" id="btn-prev" onclick="prevCategory()">← Anterior</button>
-      <button class="btn btn-primary" id="btn-next" onclick="nextCategory()">Siguiente →</button>
-    </div>
-  </div>
-
-  <div id="results">
-    <div class="results-header">
-      <h2>📊 Informe de Impacto</h2>
-      <p id="empresa-display" style="color:#718096; margin-top:0.3rem;"></p>
-      <div class="score-circle" id="score-circle">
-        <span class="score-number" id="score-total">0</span>
-        <span class="score-max">/ 1000 pts</span>
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <span class="logo-tag">Auditoría EBC · 2025</span>
+        <h1>Economía del<br><span>Bien Común</span></h1>
       </div>
-      <div id="score-badge"></div>
-      <p id="score-desc" style="margin-top:0.8rem; color:#4a5568; max-width:500px; margin-inline:auto;"></p>
-    </div>
-
-    <div class="results-grid">
-      <div class="card">
-        <h3>🕸️ Radar EBC</h3>
-        <div class="radar-wrap">
-          <canvas id="radarChart"></canvas>
+      <div class="meta-block">
+        <div class="company-name">Indaws</div>
+        <div class="company-meta">
+          Sector TIC · ~60 empleados<br>
+          Energía convencional · Proveedor Odoo
         </div>
       </div>
-      <div class="card">
-        <h3>🚦 Semáforo por Valor</h3>
-        <div class="semaforo" id="semaforo"></div>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progressBar"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">0 de 20 preguntas respondidas</div>
+    </div>
+  </header>
+
+  <!-- CUESTIONARIO -->
+  <div id="questionnaire">
+
+    <!-- DIGNIDAD HUMANA -->
+    <div class="section-card" data-cat="dh">
+      <div class="section-header">
+        <div class="section-icon">🧑</div>
+        <div class="section-title-block">
+          <div class="section-title">Dignidad Humana</div>
+          <div class="section-subtitle">Condiciones laborales, diversidad, salud y bienestar</div>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dh1" data-cat="dh" data-max="50">
+        <div class="question-label">1. ¿Cuál es la brecha salarial entre el empleado mejor pagado y el peor pagado?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Menor de 5:1<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="35" onclick="selectOption(this)"><span class="option-dot"></span>Entre 5:1 y 10:1<span class="points-badge">35 pts</span></button>
+          <button class="option-btn" data-val="15" onclick="selectOption(this)"><span class="option-dot"></span>Entre 10:1 y 20:1<span class="points-badge">15 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Mayor de 20:1 o sin datos<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dh2" data-cat="dh" data-max="50">
+        <div class="question-label">2. ¿Dispone Indaws de políticas de conciliación laboral y familiar activas?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, con teletrabajo, horario flexible y permisos ampliados<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Sí, algunas medidas básicas<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>Solo lo mínimo legal<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin políticas de conciliación<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dh3" data-cat="dh" data-max="50">
+        <div class="question-label">3. ¿Existe un plan de igualdad y diversidad en la empresa?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, plan auditado con objetivos medibles<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Sí, plan básico no auditado<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>En desarrollo<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin plan de igualdad<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dh4" data-cat="dh" data-max="50">
+        <div class="question-label">4. ¿Se evalúa el bienestar psicológico y clima laboral de los empleados?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Encuestas periódicas con plan de mejora<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Evaluaciones ocasionales sin plan<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>No se evalúa<span class="points-badge">0 pts</span></button>
+        </div>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:1.5rem;">
-      <h3>💡 Recomendaciones Personalizadas</h3>
-      <div class="rec-list" id="recomendaciones"></div>
+    <!-- SOLIDARIDAD -->
+    <div class="section-card" data-cat="sol">
+      <div class="section-header">
+        <div class="section-icon">🤝</div>
+        <div class="section-title-block">
+          <div class="section-title">Solidaridad</div>
+          <div class="section-subtitle">Cooperación, proveedores, comunidad y acción social</div>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="sol1" data-cat="sol" data-max="50">
+        <div class="question-label">5. ¿Se valoran criterios éticos y sostenibles al seleccionar proveedores?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, criterios EBC/RSC obligatorios en contratos<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Se consultan pero no son obligatorios<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>Solo precio y calidad técnica<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin criterios éticos<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="sol2" data-cat="sol" data-max="50">
+        <div class="question-label">6. ¿Destina Indaws recursos a proyectos sociales o comunitarios?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, más del 1% del beneficio anual<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Sí, acciones puntuales<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>Donaciones mínimas esporádicas<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>No destina recursos<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="sol3" data-cat="sol" data-max="50">
+        <div class="question-label">7. ¿Colabora Indaws con otras empresas o entidades del sector de forma cooperativa?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, alianzas estratégicas y proyectos conjuntos<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Colaboraciones puntuales<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Competencia exclusiva<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="sol4" data-cat="sol" data-max="50">
+        <div class="question-label">8. ¿Existen mecanismos de participación de empleados en la toma de decisiones?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, órganos formales de participación (comité, asamblea)<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Consultas periódicas informales<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>Solo decisiones operativas menores<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin mecanismos de participación<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
     </div>
 
-    <div style="text-align:center; margin-bottom:2rem;">
-      <button class="btn btn-secondary" onclick="resetAudit()">🔄 Nueva Auditoría</button>
+    <!-- SOSTENIBILIDAD ECOLÓGICA -->
+    <div class="section-card" data-cat="eco">
+      <div class="section-header">
+        <div class="section-icon">🌱</div>
+        <div class="section-title-block">
+          <div class="section-title">Sostenibilidad Ecológica</div>
+          <div class="section-subtitle">Huella ambiental, energía, residuos y economía circular</div>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="eco1" data-cat="eco" data-max="50">
+        <div class="question-label">9. ¿Cuál es la fuente de energía principal de Indaws?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>100% energía renovable certificada<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Mix con al menos 50% renovable<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>Energía convencional de red<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin medición ni interés en el tema<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="eco2" data-cat="eco" data-max="50">
+        <div class="question-label">10. ¿Mide y gestiona Indaws su huella de carbono?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, con plan de reducción y compensación<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Medición sin plan formal<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>No se mide<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="eco3" data-cat="eco" data-max="50">
+        <div class="question-label">11. ¿Cómo gestiona Indaws los residuos tecnológicos (equipos, hardware)?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Reciclaje certificado + reparación/reutilización<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="30" onclick="selectOption(this)"><span class="option-dot"></span>Punto limpio o gestor autorizado<span class="points-badge">30 pts</span></button>
+          <button class="option-btn" data-val="10" onclick="selectOption(this)"><span class="option-dot"></span>Tirado con residuos generales<span class="points-badge">10 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin gestión diferenciada<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="eco4" data-cat="eco" data-max="50">
+        <div class="question-label">12. ¿Fomenta Indaws la movilidad sostenible entre sus empleados?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, subsidio transporte público, bici o VE<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Teletrabajo como medida principal<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>Sin medidas activas<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Se incentiva el coche privado<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JUSTICIA SOCIAL -->
+    <div class="section-card" data-cat="js">
+      <div class="section-header">
+        <div class="section-icon">⚖️</div>
+        <div class="section-title-block">
+          <div class="section-title">Justicia Social</div>
+          <div class="section-subtitle">Equidad, inclusión, accesibilidad y cadena de valor</div>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="js1" data-cat="js" data-max="50">
+        <div class="question-label">13. ¿Existe un protocolo de acoso laboral y sexual formalmente definido?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, protocolo activo, formación y canal de denuncia<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Protocolo básico sin formación<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>En desarrollo<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin protocolo<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="js2" data-cat="js" data-max="50">
+        <div class="question-label">14. ¿Contrata Indaws a personas en riesgo de exclusión social?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, más del 5% de la plantilla<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>De forma puntual<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>No activamente<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="js3" data-cat="js" data-max="50">
+        <div class="question-label">15. ¿Los productos/servicios TIC de Indaws incorporan criterios de accesibilidad digital?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, cumplen WCAG 2.1 AA o superior<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Parcialmente implementado<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin criterios de accesibilidad<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="js4" data-cat="js" data-max="50">
+        <div class="question-label">16. ¿Se garantiza el pago a proveedores dentro de los plazos legales (30 días)?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, siempre en plazo o antes<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Generalmente sí, con excepciones<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Con frecuentes retrasos<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMOCRACIA Y TRANSPARENCIA -->
+    <div class="section-card" data-cat="dem">
+      <div class="section-header">
+        <div class="section-icon">🏛️</div>
+        <div class="section-title-block">
+          <div class="section-title">Democracia y Transparencia</div>
+          <div class="section-subtitle">Gobernanza, rendición de cuentas y ética empresarial</div>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dem1" data-cat="dem" data-max="50">
+        <div class="question-label">17. ¿Publica Indaws una memoria de sostenibilidad o informe de impacto anual?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, verificada por terceros y pública<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Informe interno sin publicar<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>En elaboración<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>No existe<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dem2" data-cat="dem" data-max="50">
+        <div class="question-label">18. ¿Dispone la empresa de un código ético o de conducta conocido por toda la plantilla?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, firmado, formación anual y canal de denuncias<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Código escrito poco difundido<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>Solo valores genéricos en web<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin código ético<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dem3" data-cat="dem" data-max="50">
+        <div class="question-label">19. ¿Los empleados conocen los resultados económicos y estrategia de la empresa?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, reuniones periódicas y acceso a datos<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Información básica de forma ocasional<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Información reservada a dirección<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+
+      <div class="question-group" data-qid="dem4" data-cat="dem" data-max="50">
+        <div class="question-label">20. ¿Tiene Indaws una política de privacidad y protección de datos (RGPD) robusta?</div>
+        <div class="options">
+          <button class="option-btn" data-val="50" onclick="selectOption(this)"><span class="option-dot"></span>Sí, con DPO, auditorías y formación<span class="points-badge">50 pts</span></button>
+          <button class="option-btn" data-val="25" onclick="selectOption(this)"><span class="option-dot"></span>Cumplimiento básico sin DPO<span class="points-badge">25 pts</span></button>
+          <button class="option-btn" data-val="5" onclick="selectOption(this)"><span class="option-dot"></span>Solo textos legales en web<span class="points-badge">5 pts</span></button>
+          <button class="option-btn" data-val="0" onclick="selectOption(this)"><span class="option-dot"></span>Sin política definida<span class="points-badge">0 pts</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="btn-evaluate" id="btnEvaluate" onclick="evaluate()" disabled>
+        Generar Informe EBC
+      </button>
+      <div class="cta-note">Responde todas las preguntas para habilitar el informe</div>
     </div>
   </div>
 
+  <!-- RESULTADOS -->
+  <div id="results">
+    <div class="results-hero fade-in">
+      <div class="score-ring" id="scoreRing">
+        <div class="score-number" id="scoreNumber">0</div>
+        <div class="score-denom">/ 1000</div>
+      </div>
+      <div class="results-title" id="resultsTitle">—</div>
+      <div class="results-subtitle">Puntuación EBC · Indaws · Sector TIC</div>
+    </div>
+
+    <div class="semaforo-grid" id="semaforoGrid"></div>
+
+    <div class="chart-section slide-up">
+      <div class="chart-title">Mapa de Valores EBC</div>
+      <div class="chart-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="rec-section slide-up">
+      <div class="rec-section-title">Recomendaciones Personalizadas</div>
+      <div id="recList"></div>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-reset" onclick="resetAudit()">← Nueva auditoría</button>
+    </div>
+    <div style="height:3rem;"></div>
+  </div>
 </div>
 
-<footer>Eco-Audit — Basado en la Economía del Bien Común (EBC) · Christian Felber</footer>
-
 <script>
-const categorias = [
-  {
-    id: "dignidad", nombre: "Dignidad Humana", icono: "🤝",
-    descripcion: "Respeto a las personas en toda la cadena de valor",
-    preguntas: [
-      {
-        id: "d1",
-        texto: "¿Cuál es la brecha salarial entre el sueldo más alto y el más bajo de la empresa?",
-        opciones: [
-          { texto: "Menos de 1:5 (muy equilibrada)", pts: 60 },
-          { texto: "Entre 1:5 y 1:10 (moderada)", pts: 30 },
-          { texto: "Más de 1:10 (elevada)", pts: 10 },
-          { texto: "No se conoce / no se mide", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Brecha Salarial — No conocer la brecha salarial es un riesgo reputacional y legal. Acción: implementar un registro retributivo y fijar una ratio máxima de 1:10." },
-          10: { nivel: "critical", texto: "⚠️ Área Crítica: Brecha Salarial — Una ratio superior a 1:10 indica desigualdad interna. Acción: revisar la política retributiva y establecer un salario mínimo digno." },
-          30: { nivel: "warning", texto: "⚡ Mejora: Brecha Salarial — Estás en la media, pero puedes mejorar. Objetivo: reducir la ratio a menos de 1:5 en los próximos 2 años." }
-        }
-      },
-      {
-        id: "d2",
-        texto: "¿La empresa ofrece condiciones laborales más allá del mínimo legal (flexibilidad, teletrabajo, conciliación)?",
-        opciones: [
-          { texto: "Sí, políticas activas de conciliación y flexibilidad", pts: 60 },
-          { texto: "Algo, pero de forma informal", pts: 30 },
-          { texto: "Solo lo que exige la ley", pts: 10 },
-          { texto: "No se contempla", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Condiciones Laborales — Sin políticas de conciliación se pierde talento. Acción: implementar al menos teletrabajo 1 día/semana y horario flexible de entrada." },
-          10: { nivel: "warning", texto: "⚡ Mejora: Condiciones Laborales — Cumplir solo el mínimo legal no es suficiente. Acción: crear un protocolo de conciliación formal." },
-          30: { nivel: "warning", texto: "⚡ Mejora: Condiciones Laborales — Las políticas informales son frágiles. Acción: formalizarlas en el convenio o reglamento interno." }
-        }
-      }
-    ]
-  },
-  {
-    id: "solidaridad", nombre: "Solidaridad", icono: "🌐",
-    descripcion: "Cooperación con proveedores, clientes y entorno",
-    preguntas: [
-      {
-        id: "s1",
-        texto: "¿Se priorizan proveedores locales o nacionales frente a internacionales?",
-        opciones: [
-          { texto: "Sí, criterio activo de compra local/nacional", pts: 60 },
-          { texto: "A veces, si el precio es similar", pts: 30 },
-          { texto: "No, se prioriza siempre el precio más bajo", pts: 10 },
-          { texto: "No tenemos política de proveedores", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Cadena de Suministro — Sin política de proveedores no hay control ético. Acción: crear un código de conducta para proveedores y priorizar proximidad." },
-          10: { nivel: "critical", texto: "⚠️ Área Crítica: Proveedores — Priorizar solo precio puede esconder prácticas laborales injustas. Acción: incluir criterios sociales y ambientales en la selección." },
-          30: { nivel: "warning", texto: "⚡ Mejora: Proveedores — Bien encaminado. Acción: formalizar el criterio de compra local y medir el % de facturación a proveedores locales anualmente." }
-        }
-      },
-      {
-        id: "s2",
-        texto: "¿La empresa participa en iniciativas sociales o colabora con entidades del entorno?",
-        opciones: [
-          { texto: "Sí, con plan de acción social estructurado", pts: 60 },
-          { texto: "Ocasionalmente, sin plan formal", pts: 30 },
-          { texto: "Raramente o nunca", pts: 10 },
-          { texto: "No se contempla", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "warning", texto: "⚡ Mejora: Acción Social — El compromiso con el entorno mejora imagen y cohesión interna. Acción: destinar al menos el 1% del beneficio a proyectos sociales locales." },
-          10: { nivel: "warning", texto: "⚡ Mejora: Acción Social — La participación esporádica no genera impacto real. Acción: establecer una alianza anual con una entidad social del municipio." }
-        }
-      }
-    ]
-  },
-  {
-    id: "ecologia", nombre: "Sostenibilidad Ecológica", icono: "🌱",
-    descripcion: "Respeto a los límites planetarios",
-    preguntas: [
-      {
-        id: "e1",
-        texto: "¿Qué tipo de energía consume principalmente la empresa?",
-        opciones: [
-          { texto: "100% energía renovable certificada", pts: 70 },
-          { texto: "Mix renovable + convencional", pts: 40 },
-          { texto: "Energía de red sin certificación verde", pts: 10 },
-          { texto: "Principalmente combustibles fósiles", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Energía — Acción urgente: contacta con Som Energia para cambiar a tarifa 100% renovable. Reducirás tu huella un 40% de inmediato." },
-          10: { nivel: "critical", texto: "⚠️ Área Crítica: Energía — Sin certificación verde no puedes demostrar sostenibilidad. Acción: contratar una tarifa de garantía de origen renovable." },
-          40: { nivel: "warning", texto: "⚡ Mejora: Energía — Bien encaminado. Acción: avanza hacia el 100% renovable y valora instalar paneles solares para autoconsumo." }
-        }
-      },
-      {
-        id: "e2",
-        texto: "¿La empresa tiene políticas de reducción de residuos o reciclaje?",
-        opciones: [
-          { texto: "Sí, sistema de reciclaje completo y medición de residuos", pts: 60 },
-          { texto: "Reciclaje básico (papel, plástico) sin medición", pts: 35 },
-          { texto: "Solo lo exigido por normativa", pts: 10 },
-          { texto: "No existe ninguna política", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Residuos — Sin política de residuos se incumple normativa. Acción: implantar contenedores separados y nombrar un responsable ambiental." },
-          10: { nivel: "warning", texto: "⚡ Mejora: Residuos — Cumplir solo la normativa es el mínimo. Acción: medir residuos mensualmente y fijar objetivo de reducción anual del 10%." }
-        }
-      },
-      {
-        id: "e3",
-        texto: "¿Existe alguna política de movilidad sostenible para los empleados?",
-        opciones: [
-          { texto: "Sí, transporte colectivo, bici o teletrabajo activo", pts: 40 },
-          { texto: "Se fomenta pero sin incentivos reales", pts: 20 },
-          { texto: "No existe ninguna política", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "warning", texto: "⚡ Mejora: Movilidad — Acción: ofrecer bonos de transporte público o habilitar aparcamiento de bicicletas." },
-          20: { nivel: "warning", texto: "⚡ Mejora: Movilidad — Los incentivos concretos marcan la diferencia. Acción: bonus para quienes usen transporte sostenible." }
-        }
-      }
-    ]
-  },
-  {
-    id: "justicia", nombre: "Justicia Social", icono: "⚖️",
-    descripcion: "Equidad y distribución justa del valor generado",
-    preguntas: [
-      {
-        id: "j1",
-        texto: "¿Los empleados participan en las decisiones importantes de la empresa?",
-        opciones: [
-          { texto: "Sí, existen mecanismos formales de participación", pts: 60 },
-          { texto: "Ocasionalmente, en reuniones informales", pts: 30 },
-          { texto: "La dirección toma todas las decisiones", pts: 10 },
-          { texto: "No existe ningún canal de participación", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Participación — Sin canales de participación aumenta la rotación. Acción: crear una reunión mensual de equipo con orden del día abierto." },
-          10: { nivel: "warning", texto: "⚡ Mejora: Participación — La gestión vertical limita la innovación. Acción: implementar una encuesta de clima laboral anual." }
-        }
-      },
-      {
-        id: "j2",
-        texto: "¿La empresa tiene una política de igualdad de género activa?",
-        opciones: [
-          { texto: "Sí, con plan de igualdad auditado", pts: 60 },
-          { texto: "Sí, pero sin auditoría externa", pts: 35 },
-          { texto: "Solo lo exigido por ley", pts: 15 },
-          { texto: "No existe ninguna política", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Igualdad de Género — Sin política se incumple la ley (empresas >50 empleados). Acción: elaborar un plan de igualdad con diagnóstico previo." },
-          15: { nivel: "warning", texto: "⚡ Mejora: Igualdad — Acción: realizar una auditoría retributiva de género y publicar los resultados." }
-        }
-      }
-    ]
-  },
-  {
-    id: "democracia", nombre: "Democracia y Transparencia", icono: "🏛️",
-    descripcion: "Gestión ética, transparente y participativa",
-    preguntas: [
-      {
-        id: "dem1",
-        texto: "¿La empresa publica información sobre su impacto ambiental y social?",
-        opciones: [
-          { texto: "Sí, memoria de sostenibilidad pública y verificada", pts: 60 },
-          { texto: "Informes internos pero no públicos", pts: 30 },
-          { texto: "Solo información financiera", pts: 10 },
-          { texto: "No se publica ningún tipo de informe", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "critical", texto: "⚠️ Área Crítica: Transparencia — Sin informes públicos no hay rendición de cuentas. Acción: publicar al menos una nota de sostenibilidad anual en la web corporativa." },
-          10: { nivel: "warning", texto: "⚡ Mejora: Transparencia — Solo información financiera es insuficiente. Acción: añadir sección de sostenibilidad en la memoria anual con indicadores GRI básicos." },
-          30: { nivel: "warning", texto: "⚡ Mejora: Transparencia — Los informes internos no generan confianza externa. Acción: publicar un resumen de sostenibilidad en la web." }
-        }
-      },
-      {
-        id: "dem2",
-        texto: "¿La empresa trabaja con banca ética o entidades financieras responsables?",
-        opciones: [
-          { texto: "Sí, principalmente con banca ética (Triodos, Fiare, etc.)", pts: 50 },
-          { texto: "Parte de la operativa con banca ética", pts: 25 },
-          { texto: "Banca convencional exclusivamente", pts: 5 },
-          { texto: "No se ha valorado esta cuestión", pts: 0 }
-        ],
-        recomendaciones: {
-          0: { nivel: "warning", texto: "⚡ Mejora: Banca Ética — El dinero en banca convencional puede financiar industrias contaminantes. Acción: abrir una cuenta en Triodos Bank o Fiare para la operativa sostenible." },
-          5: { nivel: "warning", texto: "⚡ Mejora: Banca Ética — Acción: valorar mover al menos el 30% de la operativa a banca ética." }
-        }
-      }
-    ]
-  }
-];
+const CATS = {
+  dh:  { label: 'Dignidad Humana',         color: '#60a5fa', icon: '🧑' },
+  sol: { label: 'Solidaridad',             color: '#a78bfa', icon: '🤝' },
+  eco: { label: 'Sostenibilidad Ecológica',color: '#4ade80', icon: '🌱' },
+  js:  { label: 'Justicia Social',         color: '#fb923c', icon: '⚖️' },
+  dem: { label: 'Democracia/Transparencia',color: '#f472b6', icon: '🏛️' },
+};
 
-let currentCat = 0;
-let respuestas = {};
-let empresaNombre = "";
+const answers = {};
 let radarChart = null;
 
-function startAudit() {
-  empresaNombre = document.getElementById("empresa-nombre").value.trim() || "Mi Empresa";
-  document.getElementById("intro").classList.add("hidden");
-  document.getElementById("cuestionario").classList.remove("hidden");
-  renderCategory();
+function selectOption(btn) {
+  const group = btn.closest('.question-group');
+  group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[group.dataset.qid] = { val: parseInt(btn.dataset.val), cat: group.dataset.cat, max: parseInt(group.dataset.max) };
+  updateProgress();
 }
 
-function renderCategory() {
-  const cat = categorias[currentCat];
-  const content = document.getElementById("category-content");
+function updateProgress() {
+  const total = document.querySelectorAll('.question-group').length;
+  const done = Object.keys(answers).length;
+  const pct = (done / total) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done} de ${total} preguntas respondidas`;
+  document.getElementById('btnEvaluate').disabled = done < total;
+}
 
-  let html = `<div class="category-header">
-    <span class="category-icon">${cat.icono}</span>
-    <div><h2>${cat.nombre}</h2><p>${cat.descripcion}</p></div>
-  </div>`;
-
-  cat.preguntas.forEach((p, pi) => {
-    html += `<div class="question-card"><h3>${pi + 1}. ${p.texto}</h3><div class="options">`;
-    p.opciones.forEach((op, oi) => {
-      const checked = respuestas[p.id] === oi ? "checked" : "";
-      html += `<label class="option-label">
-        <input type="radio" name="${p.id}" value="${oi}" ${checked} onchange="saveAnswer('${p.id}', ${oi})">
-        <span>${op.texto}</span>
-      </label>`;
-    });
-    html += `</div></div>`;
+function getScores() {
+  const scores = {};
+  const maxScores = {};
+  Object.keys(CATS).forEach(c => { scores[c] = 0; maxScores[c] = 0; });
+  Object.values(answers).forEach(a => {
+    scores[a.cat] += a.val;
+    maxScores[a.cat] += a.max;
   });
-
-  content.innerHTML = html;
-
-  const pct = ((currentCat + 1) / categorias.length) * 100;
-  document.getElementById("progress-bar").style.width = pct + "%";
-  document.getElementById("progress-text").textContent = `Categoría ${currentCat + 1} de ${categorias.length}: ${cat.nombre}`;
-  document.getElementById("btn-prev").style.visibility = currentCat === 0 ? "hidden" : "visible";
-  document.getElementById("btn-next").textContent = currentCat === categorias.length - 1 ? "Ver Informe →" : "Siguiente →";
-  document.getElementById("warning-msg").style.display = "none";
-}
-
-function saveAnswer(pregId, opIdx) { respuestas[pregId] = opIdx; }
-
-function allAnswered() {
-  return categorias[currentCat].preguntas.every(p => respuestas[p.id] !== undefined);
-}
-
-function nextCategory() {
-  if (!allAnswered()) { document.getElementById("warning-msg").style.display = "block"; return; }
-  document.getElementById("warning-msg").style.display = "none";
-  if (currentCat < categorias.length - 1) { currentCat++; renderCategory(); window.scrollTo(0,0); }
-  else { showResults(); }
-}
-
-function prevCategory() {
-  if (currentCat > 0) { currentCat--; renderCategory(); window.scrollTo(0,0); }
-}
-
-function calcScore() {
-  let total = 0;
-  let porCategoria = {};
-  categorias.forEach(cat => {
-    let catScore = 0, catMax = 0;
-    cat.preguntas.forEach(p => {
-      const idx = respuestas[p.id];
-      const pts = idx !== undefined ? p.opciones[idx].pts : 0;
-      catScore += pts;
-      catMax += Math.max(...p.opciones.map(o => o.pts));
-    });
-    porCategoria[cat.id] = { score: catScore, max: catMax, nombre: cat.nombre, icono: cat.icono };
-    total += catScore;
-  });
-  return { total, porCategoria };
-}
-
-function getGrade(pct) {
-  if (pct >= 70) return { grade: "A", label: "Óptimo", cls: "score-A", badgeCls: "badge-A", desc: "Excelente desempeño en sostenibilidad. La empresa es un referente en la aplicación de los valores EBC." };
-  if (pct >= 40) return { grade: "B", label: "Mejorable", cls: "score-B", badgeCls: "badge-B", desc: "Buen punto de partida, pero hay áreas significativas que necesitan atención para alcanzar la sostenibilidad real." };
-  return { grade: "C", label: "Crítico", cls: "score-C", badgeCls: "badge-C", desc: "La empresa tiene margen de mejora importante. Es el momento de actuar antes de que los riesgos se materialicen." };
+  return { scores, maxScores };
 }
 
 function getSemaforoClass(pct) {
-  if (pct >= 70) return { cls: "sema-green", dotCls: "dot-green" };
-  if (pct >= 40) return { cls: "sema-yellow", dotCls: "dot-yellow" };
-  return { cls: "sema-red", dotCls: "dot-red" };
+  if (pct >= 70) return 'green';
+  if (pct >= 40) return 'yellow';
+  return 'red';
 }
 
-function showResults() {
-  document.getElementById("cuestionario").classList.add("hidden");
-  document.getElementById("results").style.display = "block";
+function getSemaforoLabel(cls) {
+  return { green: 'Destacado', yellow: 'Mejorable', red: 'Urgente' }[cls];
+}
 
-  const { total, porCategoria } = calcScore();
-  const maxTotal = Object.values(porCategoria).reduce((a, c) => a + c.max, 0);
-  const pct = Math.round((total / maxTotal) * 100);
-  const grade = getGrade(pct);
-  const normalizedScore = Math.round((total / maxTotal) * 1000);
+function buildRecommendations(scores, maxScores) {
+  const recs = [];
+  const pcts = {};
+  Object.keys(CATS).forEach(c => { pcts[c] = (scores[c] / maxScores[c]) * 100; });
 
-  document.getElementById("empresa-display").textContent = `Auditoría de ${empresaNombre}`;
-  document.getElementById("score-total").textContent = normalizedScore;
-  document.getElementById("score-circle").className = "score-circle " + grade.cls;
-  document.getElementById("score-badge").innerHTML = `<span class="badge ${grade.badgeCls}">${grade.label}</span>`;
-  document.getElementById("score-desc").textContent = grade.desc;
+  const qRecs = {
+    dh1: { 0: { t: 'Establece bandas salariales: la ratio recomendada EBC es máximo 7:1 entre el salario más alto y el más bajo.', p: 'high' },
+            15: { t: 'Trabaja hacia una ratio salarial máxima de 7:1. Implanta escalas transparentes y revisiones anuales.', p: 'med' },
+            35: { t: 'Buen avance en equidad salarial. Documenta y publica la política de retribución.', p: 'low' } },
+    dh2: { 0: { t: 'Diseña urgentemente un plan de conciliación: teletrabajo, flexibilidad horaria y ampliación de permisos mejoran retención y productividad.', p: 'high' },
+            10: { t: 'Supera el mínimo legal: ofrece teletrabajo al menos 2 días/semana y flexi-time como ventajas competitivas TIC.', p: 'med' },
+            30: { t: 'Formaliza y comunica tus políticas de conciliación. Inclúyelas en la oferta de empleo.', p: 'low' } },
+    dh3: { 0: { t: 'Implementa un Plan de Igualdad: obligatorio para empresas de 50+ empleados y clave para cultura inclusiva.', p: 'high' },
+            10: { t: 'Finaliza y publica el Plan de Igualdad. Incluye objetivos SMART y seguimiento anual.', p: 'med' },
+            30: { t: 'Audita el Plan de Igualdad por un tercero y mide el impacto real de las medidas.', p: 'low' } },
+    dh4: { 0: { t: 'Lanza una encuesta de clima laboral anual. El burnout en TIC es alto: medir es el primer paso para reducirlo.', p: 'high' },
+            25: { t: 'Crea un plan de mejora derivado de las encuestas de clima y comunica los resultados a la plantilla.', p: 'med' } },
+    sol1: { 0: { t: 'Integra criterios de responsabilidad social en los pliegos de contratación. Exige a Odoo y otros proveedores su política RSC.', p: 'high' },
+             10: { t: 'Convierte los criterios éticos en requisitos contractuales mínimos para nuevos proveedores.', p: 'med' },
+             30: { t: 'Crea un cuadro de evaluación de proveedores que puntúe criterios EBC/ESG.', p: 'low' } },
+    sol2: { 0: { t: 'Inicia un programa de acción social: 0,5%-1% del beneficio puede generar impacto enorme y mejorar la marca empleadora.', p: 'high' },
+             10: { t: 'Sistematiza la acción social: elige una causa alineada con TIC (brecha digital, formación) y establece un presupuesto fijo.', p: 'med' } },
+    sol3: { 0: { t: 'Explora asociaciones sectoriales, clusters TIC valencianos y proyectos de innovación abierta para crear valor compartido.', p: 'med' } },
+    sol4: { 0: { t: 'Crea un Comité de Empresa o canal formal de participación. Los empleados comprometidos producen más y rotan menos.', p: 'high' },
+             10: { t: 'Formaliza un canal de sugerencias y encuestas de decisión para dar voz real a la plantilla.', p: 'med' } },
+    eco1: { 5: { t: 'Cambia urgente a tarifa de energía renovable certificada (CNMC). Es el paso de mayor impacto ambiental con menor coste para Indaws.', p: 'high' },
+             0: { t: 'La transición energética a renovables es el cambio de mayor impacto CO₂ para una empresa TIC. Hazlo inmediatamente.', p: 'high' },
+             25: { t: 'Avanza hacia el 100% renovable certificado y documenta el ahorro de CO₂ para comunicarlo a clientes.', p: 'med' } },
+    eco2: { 0: { t: 'Calcula la huella de carbono de Indaws con herramientas gratuitas (MITECO, CO2nsulta). Es la base de cualquier estrategia climática.', p: 'high' },
+             25: { t: 'Diseña un plan de reducción de emisiones con hitos anuales y considera compensación con créditos verificados.', p: 'med' } },
+    eco3: { 0: { t: 'Registra y gestiona los residuos RAEE con gestor autorizado. Es obligatorio legalmente y evita sanciones.', p: 'high' },
+             10: { t: 'Implementa un programa de vida útil extendida del hardware: reparación, refurb y donación antes del reciclaje.', p: 'med' } },
+    eco4: { 0: { t: 'Subsidia el transporte público o establece acuerdos con Bicivalen/Valenbisi para los desplazamientos al trabajo.', p: 'med' },
+             5: { t: 'Complementa el teletrabajo con incentivos de movilidad sostenible para los días de oficina.', p: 'low' } },
+    js1:  { 0: { t: 'Desarrolla un protocolo de acoso con canal de denuncia anónimo. Es obligatorio por ley y esencial para un entorno seguro.', p: 'high' },
+             5: { t: 'Activa el protocolo de acoso con formación anual para mandos intermedios y empleados.', p: 'high' },
+             25: { t: 'Añade un canal de denuncia externo e independiente para mayor confianza.', p: 'med' } },
+    js2:  { 0: { t: 'Establece acuerdos con entidades de inserción social para TIC. La diversidad de perfiles enriquece los equipos.', p: 'med' } },
+    js3:  { 0: { t: 'Integra accesibilidad WCAG 2.1 en tu proceso de desarrollo. En 2025 es requisito legal para contratos públicos y mejora UX general.', p: 'high' },
+             25: { t: 'Alcanza el nivel AA de WCAG 2.1 en todos tus productos y certifícalo como ventaja diferencial frente a competidores.', p: 'med' } },
+    js4:  { 0: { t: 'Establece un sistema de control de plazos de pago a proveedores. El incumplimiento genera desconfianza y problemas legales.', p: 'high' },
+             25: { t: 'Automatiza los pagos a proveedores con recordatorios y prioridad a pymes locales dentro de plazo.', p: 'low' } },
+    dem1: { 0: { t: 'Elabora una Memoria de Sostenibilidad anual siguiendo GRI o el Informe EBC. Es tu herramienta de diferenciación ante clientes B2B.', p: 'med' },
+             5: { t: 'Publica la Memoria de Sostenibilidad en tu web. La transparencia genera confianza y nuevos clientes.', p: 'med' },
+             25: { t: 'Somete tu Memoria a verificación externa para mayor credibilidad ante inversores y clientes institucionales.', p: 'low' } },
+    dem2: { 0: { t: 'Crea un Código Ético firmado por toda la plantilla. Incluye un canal de denuncias anónimo (Directiva Whistleblowing).', p: 'high' },
+             5: { t: 'Difunde activamente el Código Ético con formación anual y asegura que todos los empleados lo conocen y firman.', p: 'med' },
+             25: { t: 'Implementa el canal de denuncias exigido por la Directiva Europea 2019/1937 (Whistleblowing).', p: 'med' } },
+    dem3: { 0: { t: 'Implementa reuniones trimestrales all-hands donde la dirección comparte resultados y estrategia con toda la plantilla.', p: 'med' },
+             25: { t: 'Comparte datos financieros clave con la plantilla y vincula metas a resultados para aumentar el compromiso.', p: 'low' } },
+    dem4: { 0: { t: 'Designa un DPO (interno o externo) y realiza una auditoría RGPD urgente. Como empresa TIC la privacidad es tu activo reputacional clave.', p: 'high' },
+             5: { t: 'Realiza una auditoría RGPD completa y actualiza registros de actividades de tratamiento y análisis de riesgos.', p: 'high' },
+             25: { t: 'Designa o contrata un DPO y realiza formación anual en protección de datos para toda la plantilla.', p: 'med' } },
+  };
 
-  let semaHtml = "";
-  Object.values(porCategoria).forEach(cat => {
-    const catPct = Math.round((cat.score / cat.max) * 100);
-    const s = getSemaforoClass(catPct);
-    semaHtml += `<div class="sema-item ${s.cls}">
-      <div class="sema-left"><div class="dot ${s.dotCls}"></div><span>${cat.icono} ${cat.nombre}</span></div>
-      <span class="sema-score">${catPct}%</span>
-    </div>`;
-  });
-  document.getElementById("semaforo").innerHTML = semaHtml;
-
-  if (radarChart) radarChart.destroy();
-  const ctx = document.getElementById("radarChart").getContext("2d");
-  radarChart = new Chart(ctx, {
-    type: "radar",
-    data: {
-      labels: Object.values(porCategoria).map(c => c.nombre),
-      datasets: [{
-        label: empresaNombre,
-        data: Object.values(porCategoria).map(c => Math.round((c.score / c.max) * 100)),
-        backgroundColor: "rgba(45, 158, 95, 0.2)",
-        borderColor: "#1a6b3c",
-        pointBackgroundColor: "#1a6b3c",
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { size: 11 } } } },
-      plugins: { legend: { display: false } }
+  Object.keys(answers).forEach(qid => {
+    const a = answers[qid];
+    const recMap = qRecs[qid];
+    if (!recMap) return;
+    const recKey = a.val;
+    const rec = recMap[recKey];
+    if (rec) {
+      recs.push({ ...rec, cat: CATS[a.cat].label, icon: CATS[a.cat].icon });
     }
   });
 
-  let recs = [];
-  categorias.forEach(cat => {
-    cat.preguntas.forEach(p => {
-      const idx = respuestas[p.id];
-      const pts = idx !== undefined ? p.opciones[idx].pts : 0;
-      const maxPts = Math.max(...p.opciones.map(o => o.pts));
-      if (pts < maxPts && p.recomendaciones[pts]) recs.push({ ...p.recomendaciones[pts] });
-    });
+  recs.sort((a, b) => { const o = { high: 0, med: 1, low: 2 }; return o[a.p] - o[b.p]; });
+  return recs;
+}
+
+function evaluate() {
+  const { scores, maxScores } = getScores();
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+
+  document.getElementById('questionnaire').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Score animation
+  const scoreEl = document.getElementById('scoreNumber');
+  const ringEl = document.getElementById('scoreRing');
+  let cur = 0;
+  const step = Math.ceil(total / 60);
+  const timer = setInterval(() => {
+    cur = Math.min(cur + step, total);
+    scoreEl.textContent = cur;
+    const pct = (cur / 1000) * 360;
+    ringEl.style.setProperty('--pct', Math.round((cur / 1000) * 100) + '%');
+    if (cur >= total) clearInterval(timer);
+  }, 25);
+
+  // Score title
+  let title, titleColor;
+  const pctTotal = (total / 1000) * 100;
+  if (pctTotal >= 75) { title = '🌟 Empresa Comprometida'; titleColor = '#4ade80'; }
+  else if (pctTotal >= 55) { title = '✅ Buen Punto de Partida'; titleColor = '#86efac'; }
+  else if (pctTotal >= 35) { title = '⚠️ Potencial de Mejora'; titleColor = '#fbbf24'; }
+  else { title = '🔴 Requiere Acción Inmediata'; titleColor = '#f87171'; }
+
+  const titleEl = document.getElementById('resultsTitle');
+  titleEl.textContent = title;
+  titleEl.style.color = titleColor;
+
+  // Semaforo
+  const grid = document.getElementById('semaforoGrid');
+  grid.innerHTML = '';
+  Object.keys(CATS).forEach(cat => {
+    const s = scores[cat];
+    const m = maxScores[cat];
+    const pct = (s / m) * 100;
+    const cls = getSemaforoClass(pct);
+    const lbl = getSemaforoLabel(cls);
+    grid.innerHTML += `
+      <div class="semaforo-card slide-up">
+        <div class="semaforo-dot ${cls}"></div>
+        <div class="semaforo-cat">${CATS[cat].label}</div>
+        <div class="semaforo-score" style="color:var(--${cat})">${s}</div>
+        <div class="semaforo-max">de ${m} pts</div>
+        <div class="semaforo-label ${cls}">${lbl}</div>
+      </div>`;
   });
 
-  recs.sort((a, b) => (a.nivel === "critical" ? -1 : 1));
+  // Radar
+  if (radarChart) radarChart.destroy();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  const labels = Object.values(CATS).map(c => c.label.split(' ').slice(0,2).join(' '));
+  const data = Object.keys(CATS).map(c => Math.round((scores[c] / maxScores[c]) * 100));
+  const colors = Object.values(CATS).map(c => c.color);
 
-  let recHtml = "";
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Indaws',
+        data,
+        backgroundColor: 'rgba(74,222,128,0.1)',
+        borderColor: '#4ade80',
+        borderWidth: 2,
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, color: '#6b8f71', font: { size: 10 }, backdropColor: 'transparent' },
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          angleLines: { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: { color: '#e8f5e9', font: { size: 11, family: 'DM Sans' } }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.raw}%`
+          }
+        }
+      }
+    }
+  });
+
+  // Recomendaciones
+  const recs = buildRecommendations(scores, maxScores);
+  const recList = document.getElementById('recList');
+  recList.innerHTML = '';
   if (recs.length === 0) {
-    recHtml = `<div class="rec-item rec-good"><strong>✅ Excelente</strong>La empresa obtiene una puntuación óptima en todas las áreas. Mantén el rumbo.</div>`;
+    recList.innerHTML = '<div class="rec-item priority-low"><div class="rec-icon">🌟</div><div><div class="rec-text">Excelente desempeño en todas las categorías. Mantén la certificación anual EBC y comparte tus buenas prácticas como empresa referente del sector.</div></div></div>';
   } else {
-    recs.slice(0, 6).forEach(r => {
-      const cls = r.nivel === "critical" ? "rec-critical" : "rec-warning";
-      recHtml += `<div class="rec-item ${cls}">${r.texto}</div>`;
+    recs.forEach(r => {
+      recList.innerHTML += `
+        <div class="rec-item priority-${r.p}">
+          <div class="rec-icon">${r.icon}</div>
+          <div>
+            <div class="rec-text">${r.t}</div>
+            <div class="rec-cat">${r.cat}</div>
+          </div>
+        </div>`;
     });
   }
-  document.getElementById("recomendaciones").innerHTML = recHtml;
-  window.scrollTo(0, 0);
 }
 
 function resetAudit() {
-  respuestas = {}; currentCat = 0; empresaNombre = "";
-  document.getElementById("empresa-nombre").value = "";
-  document.getElementById("empresa-sector").value = "";
-  document.getElementById("results").style.display = "none";
-  document.getElementById("intro").classList.remove("hidden");
-  window.scrollTo(0, 0);
+  Object.keys(answers).forEach(k => delete answers[k]);
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('questionnaire').style.display = 'block';
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+updateProgress();
 </script>
 </body>
 </html>
