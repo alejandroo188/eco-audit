@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eco-Audit | Auditoría de Sostenibilidad EBC</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a6b3c, #2d9e5f);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    header h1 { font-size: 2.2rem; margin-bottom: 0.3rem; }
+    header p { font-size: 1rem; opacity: 0.85; }
+
+    .container {
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .intro-card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    .intro-card h2 { color: #1a6b3c; margin-bottom: 0.8rem; }
+    .intro-card p { line-height: 1.6; color: #4a5568; }
+
+    .empresa-form {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .empresa-form input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.7rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .empresa-form input:focus {
+      outline: none;
+      border-color: #2d9e5f;
+    }
+
+    .progress-bar-wrap {
+      background: #e2e8f0;
+      border-radius: 99px;
+      height: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-bar {
+      height: 8px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #1a6b3c, #48bb78);
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      text-align: right;
+      font-size: 0.85rem;
+      color: #718096;
+      margin-bottom: 0.5rem;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .category-icon { font-size: 2rem; }
+
+    .category-header h2 { font-size: 1.4rem; color: #1a6b3c; }
+    .category-header p { font-size: 0.9rem; color: #718096; }
+
+    .question-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 1.2rem;
+      border-left: 4px solid #2d9e5f;
+      transition: box-shadow 0.2s;
+    }
+
+    .question-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+    .question-card h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: #2d3748;
+      line-height: 1.5;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.7rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .option-label:hover { border-color: #2d9e5f; background: #f0fff4; }
+
+    input[type="radio"] { accent-color: #1a6b3c; width: 16px; height: 16px; }
+
+    .option-label:has(input:checked) {
+      border-color: #1a6b3c;
+      background: #f0fff4;
+    }
+
+    .btn {
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a6b3c, #2d9e5f);
+      color: white;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,107,60,0.3); }
+
+    .btn-secondary { background: #e2e8f0; color: #4a5568; }
+    .btn-secondary:hover { background: #cbd5e0; }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+
+    #results { display: none; }
+
+    .results-header {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+
+    .score-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 1rem auto;
+      font-weight: bold;
+    }
+
+    .score-circle .score-number { font-size: 2.5rem; line-height: 1; }
+    .score-circle .score-max { font-size: 0.9rem; opacity: 0.7; }
+
+    .score-A { background: #c6f6d5; color: #1a6b3c; border: 4px solid #2d9e5f; }
+    .score-B { background: #fefcbf; color: #744210; border: 4px solid #d69e2e; }
+    .score-C { background: #fed7d7; color: #742a2a; border: 4px solid #e53e3e; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 1rem;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .badge-A { background: #c6f6d5; color: #1a6b3c; }
+    .badge-B { background: #fefcbf; color: #744210; }
+    .badge-C { background: #fed7d7; color: #742a2a; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .card h3 { font-size: 1.1rem; color: #2d3748; margin-bottom: 1rem; }
+
+    .semaforo { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .sema-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+    }
+
+    .sema-left { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 500; }
+
+    .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: #48bb78; }
+    .dot-yellow { background: #ecc94b; }
+    .dot-red { background: #fc8181; }
+
+    .sema-green { background: #f0fff4; }
+    .sema-yellow { background: #fffff0; }
+    .sema-red { background: #fff5f5; }
+
+    .sema-score { font-weight: 700; font-size: 0.95rem; }
+
+    .rec-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .rec-item {
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      border-left: 4px solid;
+    }
+
+    .rec-critical { background: #fff5f5; border-color: #e53e3e; }
+    .rec-warning { background: #fffff0; border-color: #d69e2e; }
+    .rec-good { background: #f0fff4; border-color: #2d9e5f; }
+
+    .rec-item strong { display: block; margin-bottom: 0.3rem; }
+
+    .radar-wrap { position: relative; max-width: 300px; margin: 0 auto; }
+
+    .hidden { display: none; }
+
+    .warning-msg {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #856404;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #a0aec0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Eco-Audit</h1>
+  <p>Herramienta de diagnóstico de sostenibilidad basada en la Economía del Bien Común</p>
+</header>
+
+<div class="container">
+
+  <div class="intro-card" id="intro">
+    <h2>¿Qué es Eco-Audit?</h2>
+    <p>Esta herramienta permite a cualquier PYME autoevaluarse según los principios de la <strong>Economía del Bien Común (EBC)</strong>. Responde las preguntas y obtendrás un informe de impacto con recomendaciones personalizadas basadas en los 5 valores EBC: Dignidad Humana, Solidaridad, Justicia Social, Sostenibilidad Ecológica y Democracia/Transparencia.</p>
+    <div class="empresa-form">
+      <input type="text" id="empresa-nombre" placeholder="Nombre de la empresa" />
+      <input type="text" id="empresa-sector" placeholder="Sector (ej: TIC, Hostelería...)" />
+      <button class="btn btn-primary" onclick="startAudit()">Comenzar Auditoría →</button>
+    </div>
+  </div>
+
+  <div id="cuestionario" class="hidden">
+    <div class="progress-text" id="progress-text">Categoría 1 de 5</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width: 20%"></div>
+    </div>
+    <div class="warning-msg" id="warning-msg">⚠️ Por favor, responde todas las preguntas antes de continuar.</div>
+    <div id="category-content"></div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="btn-prev" onclick="prevCategory()">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextCategory()">Siguiente →</button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="results-header">
+      <h2>📊 Informe de Impacto</h2>
+      <p id="empresa-display" style="color:#718096; margin-top:0.3rem;"></p>
+      <div class="score-circle" id="score-circle">
+        <span class="score-number" id="score-total">0</span>
+        <span class="score-max">/ 1000 pts</span>
+      </div>
+      <div id="score-badge"></div>
+      <p id="score-desc" style="margin-top:0.8rem; color:#4a5568; max-width:500px; margin-inline:auto;"></p>
+    </div>
+
+    <div class="results-grid">
+      <div class="card">
+        <h3>🕸️ Radar EBC</h3>
+        <div class="radar-wrap">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🚦 Semáforo por Valor</h3>
+        <div class="semaforo" id="semaforo"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3>💡 Recomendaciones Personalizadas</h3>
+      <div class="rec-list" id="recomendaciones"></div>
+    </div>
+
+    <div style="text-align:center; margin-bottom:2rem;">
+      <button class="btn btn-secondary" onclick="resetAudit()">🔄 Nueva Auditoría</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>Eco-Audit — Basado en la Economía del Bien Común (EBC) · Christian Felber</footer>
+
+<script>
+const categorias = [
+  {
+    id: "dignidad", nombre: "Dignidad Humana", icono: "🤝",
+    descripcion: "Respeto a las personas en toda la cadena de valor",
+    preguntas: [
+      {
+        id: "d1",
+        texto: "¿Cuál es la brecha salarial entre el sueldo más alto y el más bajo de la empresa?",
+        opciones: [
+          { texto: "Menos de 1:5 (muy equilibrada)", pts: 60 },
+          { texto: "Entre 1:5 y 1:10 (moderada)", pts: 30 },
+          { texto: "Más de 1:10 (elevada)", pts: 10 },
+          { texto: "No se conoce / no se mide", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Brecha Salarial — No conocer la brecha salarial es un riesgo reputacional y legal. Acción: implementar un registro retributivo y fijar una ratio máxima de 1:10." },
+          10: { nivel: "critical", texto: "⚠️ Área Crítica: Brecha Salarial — Una ratio superior a 1:10 indica desigualdad interna. Acción: revisar la política retributiva y establecer un salario mínimo digno." },
+          30: { nivel: "warning", texto: "⚡ Mejora: Brecha Salarial — Estás en la media, pero puedes mejorar. Objetivo: reducir la ratio a menos de 1:5 en los próximos 2 años." }
+        }
+      },
+      {
+        id: "d2",
+        texto: "¿La empresa ofrece condiciones laborales más allá del mínimo legal (flexibilidad, teletrabajo, conciliación)?",
+        opciones: [
+          { texto: "Sí, políticas activas de conciliación y flexibilidad", pts: 60 },
+          { texto: "Algo, pero de forma informal", pts: 30 },
+          { texto: "Solo lo que exige la ley", pts: 10 },
+          { texto: "No se contempla", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Condiciones Laborales — Sin políticas de conciliación se pierde talento. Acción: implementar al menos teletrabajo 1 día/semana y horario flexible de entrada." },
+          10: { nivel: "warning", texto: "⚡ Mejora: Condiciones Laborales — Cumplir solo el mínimo legal no es suficiente. Acción: crear un protocolo de conciliación formal." },
+          30: { nivel: "warning", texto: "⚡ Mejora: Condiciones Laborales — Las políticas informales son frágiles. Acción: formalizarlas en el convenio o reglamento interno." }
+        }
+      }
+    ]
+  },
+  {
+    id: "solidaridad", nombre: "Solidaridad", icono: "🌐",
+    descripcion: "Cooperación con proveedores, clientes y entorno",
+    preguntas: [
+      {
+        id: "s1",
+        texto: "¿Se priorizan proveedores locales o nacionales frente a internacionales?",
+        opciones: [
+          { texto: "Sí, criterio activo de compra local/nacional", pts: 60 },
+          { texto: "A veces, si el precio es similar", pts: 30 },
+          { texto: "No, se prioriza siempre el precio más bajo", pts: 10 },
+          { texto: "No tenemos política de proveedores", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Cadena de Suministro — Sin política de proveedores no hay control ético. Acción: crear un código de conducta para proveedores y priorizar proximidad." },
+          10: { nivel: "critical", texto: "⚠️ Área Crítica: Proveedores — Priorizar solo precio puede esconder prácticas laborales injustas. Acción: incluir criterios sociales y ambientales en la selección." },
+          30: { nivel: "warning", texto: "⚡ Mejora: Proveedores — Bien encaminado. Acción: formalizar el criterio de compra local y medir el % de facturación a proveedores locales anualmente." }
+        }
+      },
+      {
+        id: "s2",
+        texto: "¿La empresa participa en iniciativas sociales o colabora con entidades del entorno?",
+        opciones: [
+          { texto: "Sí, con plan de acción social estructurado", pts: 60 },
+          { texto: "Ocasionalmente, sin plan formal", pts: 30 },
+          { texto: "Raramente o nunca", pts: 10 },
+          { texto: "No se contempla", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "warning", texto: "⚡ Mejora: Acción Social — El compromiso con el entorno mejora imagen y cohesión interna. Acción: destinar al menos el 1% del beneficio a proyectos sociales locales." },
+          10: { nivel: "warning", texto: "⚡ Mejora: Acción Social — La participación esporádica no genera impacto real. Acción: establecer una alianza anual con una entidad social del municipio." }
+        }
+      }
+    ]
+  },
+  {
+    id: "ecologia", nombre: "Sostenibilidad Ecológica", icono: "🌱",
+    descripcion: "Respeto a los límites planetarios",
+    preguntas: [
+      {
+        id: "e1",
+        texto: "¿Qué tipo de energía consume principalmente la empresa?",
+        opciones: [
+          { texto: "100% energía renovable certificada", pts: 70 },
+          { texto: "Mix renovable + convencional", pts: 40 },
+          { texto: "Energía de red sin certificación verde", pts: 10 },
+          { texto: "Principalmente combustibles fósiles", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Energía — Acción urgente: contacta con Som Energia para cambiar a tarifa 100% renovable. Reducirás tu huella un 40% de inmediato." },
+          10: { nivel: "critical", texto: "⚠️ Área Crítica: Energía — Sin certificación verde no puedes demostrar sostenibilidad. Acción: contratar una tarifa de garantía de origen renovable." },
+          40: { nivel: "warning", texto: "⚡ Mejora: Energía — Bien encaminado. Acción: avanza hacia el 100% renovable y valora instalar paneles solares para autoconsumo." }
+        }
+      },
+      {
+        id: "e2",
+        texto: "¿La empresa tiene políticas de reducción de residuos o reciclaje?",
+        opciones: [
+          { texto: "Sí, sistema de reciclaje completo y medición de residuos", pts: 60 },
+          { texto: "Reciclaje básico (papel, plástico) sin medición", pts: 35 },
+          { texto: "Solo lo exigido por normativa", pts: 10 },
+          { texto: "No existe ninguna política", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Residuos — Sin política de residuos se incumple normativa. Acción: implantar contenedores separados y nombrar un responsable ambiental." },
+          10: { nivel: "warning", texto: "⚡ Mejora: Residuos — Cumplir solo la normativa es el mínimo. Acción: medir residuos mensualmente y fijar objetivo de reducción anual del 10%." }
+        }
+      },
+      {
+        id: "e3",
+        texto: "¿Existe alguna política de movilidad sostenible para los empleados?",
+        opciones: [
+          { texto: "Sí, transporte colectivo, bici o teletrabajo activo", pts: 40 },
+          { texto: "Se fomenta pero sin incentivos reales", pts: 20 },
+          { texto: "No existe ninguna política", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "warning", texto: "⚡ Mejora: Movilidad — Acción: ofrecer bonos de transporte público o habilitar aparcamiento de bicicletas." },
+          20: { nivel: "warning", texto: "⚡ Mejora: Movilidad — Los incentivos concretos marcan la diferencia. Acción: bonus para quienes usen transporte sostenible." }
+        }
+      }
+    ]
+  },
+  {
+    id: "justicia", nombre: "Justicia Social", icono: "⚖️",
+    descripcion: "Equidad y distribución justa del valor generado",
+    preguntas: [
+      {
+        id: "j1",
+        texto: "¿Los empleados participan en las decisiones importantes de la empresa?",
+        opciones: [
+          { texto: "Sí, existen mecanismos formales de participación", pts: 60 },
+          { texto: "Ocasionalmente, en reuniones informales", pts: 30 },
+          { texto: "La dirección toma todas las decisiones", pts: 10 },
+          { texto: "No existe ningún canal de participación", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Participación — Sin canales de participación aumenta la rotación. Acción: crear una reunión mensual de equipo con orden del día abierto." },
+          10: { nivel: "warning", texto: "⚡ Mejora: Participación — La gestión vertical limita la innovación. Acción: implementar una encuesta de clima laboral anual." }
+        }
+      },
+      {
+        id: "j2",
+        texto: "¿La empresa tiene una política de igualdad de género activa?",
+        opciones: [
+          { texto: "Sí, con plan de igualdad auditado", pts: 60 },
+          { texto: "Sí, pero sin auditoría externa", pts: 35 },
+          { texto: "Solo lo exigido por ley", pts: 15 },
+          { texto: "No existe ninguna política", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Igualdad de Género — Sin política se incumple la ley (empresas >50 empleados). Acción: elaborar un plan de igualdad con diagnóstico previo." },
+          15: { nivel: "warning", texto: "⚡ Mejora: Igualdad — Acción: realizar una auditoría retributiva de género y publicar los resultados." }
+        }
+      }
+    ]
+  },
+  {
+    id: "democracia", nombre: "Democracia y Transparencia", icono: "🏛️",
+    descripcion: "Gestión ética, transparente y participativa",
+    preguntas: [
+      {
+        id: "dem1",
+        texto: "¿La empresa publica información sobre su impacto ambiental y social?",
+        opciones: [
+          { texto: "Sí, memoria de sostenibilidad pública y verificada", pts: 60 },
+          { texto: "Informes internos pero no públicos", pts: 30 },
+          { texto: "Solo información financiera", pts: 10 },
+          { texto: "No se publica ningún tipo de informe", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "critical", texto: "⚠️ Área Crítica: Transparencia — Sin informes públicos no hay rendición de cuentas. Acción: publicar al menos una nota de sostenibilidad anual en la web corporativa." },
+          10: { nivel: "warning", texto: "⚡ Mejora: Transparencia — Solo información financiera es insuficiente. Acción: añadir sección de sostenibilidad en la memoria anual con indicadores GRI básicos." },
+          30: { nivel: "warning", texto: "⚡ Mejora: Transparencia — Los informes internos no generan confianza externa. Acción: publicar un resumen de sostenibilidad en la web." }
+        }
+      },
+      {
+        id: "dem2",
+        texto: "¿La empresa trabaja con banca ética o entidades financieras responsables?",
+        opciones: [
+          { texto: "Sí, principalmente con banca ética (Triodos, Fiare, etc.)", pts: 50 },
+          { texto: "Parte de la operativa con banca ética", pts: 25 },
+          { texto: "Banca convencional exclusivamente", pts: 5 },
+          { texto: "No se ha valorado esta cuestión", pts: 0 }
+        ],
+        recomendaciones: {
+          0: { nivel: "warning", texto: "⚡ Mejora: Banca Ética — El dinero en banca convencional puede financiar industrias contaminantes. Acción: abrir una cuenta en Triodos Bank o Fiare para la operativa sostenible." },
+          5: { nivel: "warning", texto: "⚡ Mejora: Banca Ética — Acción: valorar mover al menos el 30% de la operativa a banca ética." }
+        }
+      }
+    ]
+  }
+];
+
+let currentCat = 0;
+let respuestas = {};
+let empresaNombre = "";
+let radarChart = null;
+
+function startAudit() {
+  empresaNombre = document.getElementById("empresa-nombre").value.trim() || "Mi Empresa";
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("cuestionario").classList.remove("hidden");
+  renderCategory();
+}
+
+function renderCategory() {
+  const cat = categorias[currentCat];
+  const content = document.getElementById("category-content");
+
+  let html = `<div class="category-header">
+    <span class="category-icon">${cat.icono}</span>
+    <div><h2>${cat.nombre}</h2><p>${cat.descripcion}</p></div>
+  </div>`;
+
+  cat.preguntas.forEach((p, pi) => {
+    html += `<div class="question-card"><h3>${pi + 1}. ${p.texto}</h3><div class="options">`;
+    p.opciones.forEach((op, oi) => {
+      const checked = respuestas[p.id] === oi ? "checked" : "";
+      html += `<label class="option-label">
+        <input type="radio" name="${p.id}" value="${oi}" ${checked} onchange="saveAnswer('${p.id}', ${oi})">
+        <span>${op.texto}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  });
+
+  content.innerHTML = html;
+
+  const pct = ((currentCat + 1) / categorias.length) * 100;
+  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-text").textContent = `Categoría ${currentCat + 1} de ${categorias.length}: ${cat.nombre}`;
+  document.getElementById("btn-prev").style.visibility = currentCat === 0 ? "hidden" : "visible";
+  document.getElementById("btn-next").textContent = currentCat === categorias.length - 1 ? "Ver Informe →" : "Siguiente →";
+  document.getElementById("warning-msg").style.display = "none";
+}
+
+function saveAnswer(pregId, opIdx) { respuestas[pregId] = opIdx; }
+
+function allAnswered() {
+  return categorias[currentCat].preguntas.every(p => respuestas[p.id] !== undefined);
+}
+
+function nextCategory() {
+  if (!allAnswered()) { document.getElementById("warning-msg").style.display = "block"; return; }
+  document.getElementById("warning-msg").style.display = "none";
+  if (currentCat < categorias.length - 1) { currentCat++; renderCategory(); window.scrollTo(0,0); }
+  else { showResults(); }
+}
+
+function prevCategory() {
+  if (currentCat > 0) { currentCat--; renderCategory(); window.scrollTo(0,0); }
+}
+
+function calcScore() {
+  let total = 0;
+  let porCategoria = {};
+  categorias.forEach(cat => {
+    let catScore = 0, catMax = 0;
+    cat.preguntas.forEach(p => {
+      const idx = respuestas[p.id];
+      const pts = idx !== undefined ? p.opciones[idx].pts : 0;
+      catScore += pts;
+      catMax += Math.max(...p.opciones.map(o => o.pts));
+    });
+    porCategoria[cat.id] = { score: catScore, max: catMax, nombre: cat.nombre, icono: cat.icono };
+    total += catScore;
+  });
+  return { total, porCategoria };
+}
+
+function getGrade(pct) {
+  if (pct >= 70) return { grade: "A", label: "Óptimo", cls: "score-A", badgeCls: "badge-A", desc: "Excelente desempeño en sostenibilidad. La empresa es un referente en la aplicación de los valores EBC." };
+  if (pct >= 40) return { grade: "B", label: "Mejorable", cls: "score-B", badgeCls: "badge-B", desc: "Buen punto de partida, pero hay áreas significativas que necesitan atención para alcanzar la sostenibilidad real." };
+  return { grade: "C", label: "Crítico", cls: "score-C", badgeCls: "badge-C", desc: "La empresa tiene margen de mejora importante. Es el momento de actuar antes de que los riesgos se materialicen." };
+}
+
+function getSemaforoClass(pct) {
+  if (pct >= 70) return { cls: "sema-green", dotCls: "dot-green" };
+  if (pct >= 40) return { cls: "sema-yellow", dotCls: "dot-yellow" };
+  return { cls: "sema-red", dotCls: "dot-red" };
+}
+
+function showResults() {
+  document.getElementById("cuestionario").classList.add("hidden");
+  document.getElementById("results").style.display = "block";
+
+  const { total, porCategoria } = calcScore();
+  const maxTotal = Object.values(porCategoria).reduce((a, c) => a + c.max, 0);
+  const pct = Math.round((total / maxTotal) * 100);
+  const grade = getGrade(pct);
+  const normalizedScore = Math.round((total / maxTotal) * 1000);
+
+  document.getElementById("empresa-display").textContent = `Auditoría de ${empresaNombre}`;
+  document.getElementById("score-total").textContent = normalizedScore;
+  document.getElementById("score-circle").className = "score-circle " + grade.cls;
+  document.getElementById("score-badge").innerHTML = `<span class="badge ${grade.badgeCls}">${grade.label}</span>`;
+  document.getElementById("score-desc").textContent = grade.desc;
+
+  let semaHtml = "";
+  Object.values(porCategoria).forEach(cat => {
+    const catPct = Math.round((cat.score / cat.max) * 100);
+    const s = getSemaforoClass(catPct);
+    semaHtml += `<div class="sema-item ${s.cls}">
+      <div class="sema-left"><div class="dot ${s.dotCls}"></div><span>${cat.icono} ${cat.nombre}</span></div>
+      <span class="sema-score">${catPct}%</span>
+    </div>`;
+  });
+  document.getElementById("semaforo").innerHTML = semaHtml;
+
+  if (radarChart) radarChart.destroy();
+  const ctx = document.getElementById("radarChart").getContext("2d");
+  radarChart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: Object.values(porCategoria).map(c => c.nombre),
+      datasets: [{
+        label: empresaNombre,
+        data: Object.values(porCategoria).map(c => Math.round((c.score / c.max) * 100)),
+        backgroundColor: "rgba(45, 158, 95, 0.2)",
+        borderColor: "#1a6b3c",
+        pointBackgroundColor: "#1a6b3c",
+        borderWidth: 2
+      }]
+    },
+    options: {
+      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { size: 11 } } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  let recs = [];
+  categorias.forEach(cat => {
+    cat.preguntas.forEach(p => {
+      const idx = respuestas[p.id];
+      const pts = idx !== undefined ? p.opciones[idx].pts : 0;
+      const maxPts = Math.max(...p.opciones.map(o => o.pts));
+      if (pts < maxPts && p.recomendaciones[pts]) recs.push({ ...p.recomendaciones[pts] });
+    });
+  });
+
+  recs.sort((a, b) => (a.nivel === "critical" ? -1 : 1));
+
+  let recHtml = "";
+  if (recs.length === 0) {
+    recHtml = `<div class="rec-item rec-good"><strong>✅ Excelente</strong>La empresa obtiene una puntuación óptima en todas las áreas. Mantén el rumbo.</div>`;
+  } else {
+    recs.slice(0, 6).forEach(r => {
+      const cls = r.nivel === "critical" ? "rec-critical" : "rec-warning";
+      recHtml += `<div class="rec-item ${cls}">${r.texto}</div>`;
+    });
+  }
+  document.getElementById("recomendaciones").innerHTML = recHtml;
+  window.scrollTo(0, 0);
+}
+
+function resetAudit() {
+  respuestas = {}; currentCat = 0; empresaNombre = "";
+  document.getElementById("empresa-nombre").value = "";
+  document.getElementById("empresa-sector").value = "";
+  document.getElementById("results").style.display = "none";
+  document.getElementById("intro").classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
