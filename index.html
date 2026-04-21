@@ -221,7 +221,9 @@
     background: rgba(74,222,128,0.08);
     color: var(--muted);
     flex-shrink: 0;
+    display: none;
   }
+  .show-points .points-badge { display: inline-block; }
   .option-btn.selected .points-badge { color: var(--accent); }
 
   /* CTA */
@@ -1065,6 +1067,7 @@ function evaluate() {
   const { scores, maxScores } = getScores();
   const total = Object.values(scores).reduce((a, b) => a + b, 0);
 
+  document.getElementById('questionnaire').classList.add('show-points');
   document.getElementById('questionnaire').style.display = 'none';
   document.getElementById('results').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1190,6 +1193,7 @@ function resetAudit() {
   document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('results').style.display = 'none';
   document.getElementById('questionnaire').style.display = 'none';
+  document.getElementById('questionnaire').classList.remove('show-points');
   document.getElementById('progressWrap').style.display = 'none';
   document.getElementById('welcome').style.display = 'flex';
   updateProgress();
