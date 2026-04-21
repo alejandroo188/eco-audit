@@ -900,7 +900,7 @@
     </div>
 
     <div class="cta-wrap">
-      <button class="btn-evaluate" id="btnEvaluate" onclick="evaluate()">
+      <button class="btn-evaluate" id="btnEvaluate" onclick="generarInforme()">
         Generar Informe EBC
       </button>
       <div class="cta-note" id="ctaNote">Responde todas las preguntas para habilitar el informe</div>
@@ -1075,7 +1075,7 @@ function buildRecommendations(scores, maxScores) {
   return recs;
 }
 
-function evaluate() {
+function generarInforme() {
   const totalQ = document.querySelectorAll('.question-group').length;
   const done = Object.keys(answers).length;
   if (done < totalQ) {
