@@ -900,10 +900,10 @@
     </div>
 
     <div class="cta-wrap">
-      <button class="btn-evaluate" id="btnEvaluate" onclick="evaluate()" disabled>
+      <button class="btn-evaluate" id="btnEvaluate" onclick="evaluate()">
         Generar Informe EBC
       </button>
-      <div class="cta-note">Responde todas las preguntas para habilitar el informe</div>
+      <div class="cta-note" id="ctaNote">Responde todas las preguntas para habilitar el informe</div>
     </div>
   </div>
 
@@ -969,7 +969,19 @@ function updateProgress() {
   const pct = (done / total) * 100;
   document.getElementById('progressBar').style.width = pct + '%';
   document.getElementById('progressLabel').textContent = `${done} de ${total} preguntas respondidas`;
-  document.getElementById('btnEvaluate').disabled = done < total;
+  const btn = document.getElementById('btnEvaluate');
+  const note = document.getElementById('ctaNote');
+  if (done < total) {
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+    btn.style.transform = 'none';
+    note.textContent = `Responde todas las preguntas para habilitar el informe (${done}/${total})`;
+  } else {
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.style.transform = '';
+    note.textContent = '¡Listo! Pulsa para generar el informe.';
+  }
 }
 
 function getScores() {
@@ -1064,6 +1076,15 @@ function buildRecommendations(scores, maxScores) {
 }
 
 function evaluate() {
+  const totalQ = document.querySelectorAll('.question-group').length;
+  const done = Object.keys(answers).length;
+  if (done < totalQ) {
+    alert(`Faltan preguntas por responder (${done}/${totalQ}). Marca una opción en cada pregunta.`);
+    return;
+  }
+
+  try {
+
   const { scores, maxScores } = getScores();
   const total = Object.values(scores).reduce((a, b) => a + b, 0);
 
@@ -1178,6 +1199,11 @@ function evaluate() {
           </div>
         </div>`;
     });
+  }
+
+  } catch(err) {
+    alert('Error al generar el informe: ' + err.message + '\n\nAbre F12 → Consola para más detalles.');
+    console.error(err);
   }
 }
 
